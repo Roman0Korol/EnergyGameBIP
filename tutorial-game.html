@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game with Step-by-Step Tutorial Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Game Container */
+        .game-container {
+            width: 90vw;
+            max-width: 1200px;
+            height: 90vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            color: #e0e0e0;
+        }
+
+        /* Game Header */
+        .game-header {
+            text-align: center;
+        }
+
+        .game-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .game-header p {
+            font-size: 1.1em;
+            color: #b0b0b0;
+        }
+
+        /* Game Content Area */
+        .game-content {
+            flex: 1;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        /* UI Elements to be Highlighted */
+        .game-element {
+            padding: 30px 50px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #00d4ff;
+            min-width: 200px;
+        }
+
+        .game-element:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .game-element.highlighted {
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(255, 255, 0, 0.8),
+                        inset 0 0 20px rgba(255, 255, 0, 0.3);
+            border-color: #ffff00;
+            color: #ffff00;
+            position: relative;
+        }
+
+        /* Tutorial Overlay */
+        #tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            pointer-events: none;
+            display: none;
+        }
+
+        #tutorial-overlay.active {
+            display: block;
+        }
+
+        /* Dark Backdrop - 80% Black Opacity */
+        .tutorial-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1;
+        }
+
+        /* Spotlight Effect - Invisible cutout for highlighted element */
+        .tutorial-spotlight {
+            position: absolute;
+            border-radius: 8px;
+            z-index: 2;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+
+        /* Tutorial Instruction Box */
+        .tutorial-box {
+            position: fixed;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
+                        0 0 40px rgba(0, 212, 255, 0.4);
+            z-index: 3;
+            pointer-events: all;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tutorial-box h2 {
+            color: #ffff00;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+        }
+
+        .tutorial-box p {
+            color: #d0d0d0;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Step Indicator */
+        .tutorial-step-indicator {
+            font-size: 0.95em;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* Tutorial Button */
+        .tutorial-button {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .tutorial-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+        }
+
+        .tutorial-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Centered Tutorial Box (Final Step) */
+        .tutorial-box.centered {
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%);
+            max-width: 500px;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .game-header h1 {
+                font-size: 1.8em;
+            }
+
+            .game-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .tutorial-box {
+                max-width: 90vw;
+                padding: 20px;
+            }
+
+            .tutorial-box h2 {
+                font-size: 1.2em;
+            }
+
+            .tutorial-box p {
+                font-size: 1em;
+            }
+
+            .game-element {
+                min-width: 150px;
+                padding: 20px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Game Container -->
+    <div class="game-container">
+        <div class="game-header">
+            <h1>⚡ Energy Game</h1>
+            <p>Complete the tutorial to begin your adventure</p>
+        </div>
+
+        <div class="game-content">
+            <!-- First UI Element to Highlight -->
+            <div class="game-element" id="start-button">
+                🎮 Start Button
+            </div>
+
+            <!-- Second UI Element to Highlight -->
+            <div class="game-element" id="settings-button">
+                ⚙️ Settings
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Overlay System -->
+    <div id="tutorial-overlay">
+        <!-- Dark Backdrop -->
+        <div class="tutorial-backdrop"></div>
+
+        <!-- Spotlight Effect (Dynamic positioning) -->
+        <div class="tutorial-spotlight" id="tutorial-spotlight"></div>
+
+        <!-- Tutorial Instruction Box -->
+        <div class="tutorial-box" id="tutorial-box">
+            <div class="tutorial-step-indicator" id="step-indicator">Step 1 of 4</div>
+            <h2 id="tutorial-title">Welcome!</h2>
+            <p id="tutorial-text">This is your adventure begins. Let me show you around the game interface.</p>
+            <button class="tutorial-button" id="tutorial-next-btn">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Tutorial System Configuration
+         * Manages step-by-step overlay tutorial for game
+         */
+        class TutorialSystem {
+            constructor() {
+                this.currentStep = 0;
+                this.isActive = false;
+
+                // Tutorial steps configuration
+                this.steps = [
+                    {
+                        title: "Welcome to the Game!",
+                        text: "This is the Start Button. Click it to begin your gaming experience and embark on an epic quest!",
+                        target: "#start-button",
+                        centered: false
+                    },
+                    {
+                        title: "Adjust Your Preferences",
+                        text: "Use the Settings button to customize game difficulty, audio volume, and visual preferences to suit your gaming style.",
+                        target: "#settings-button",
+                        centered: false
+                    },
+                    {
+                        title: "Explore the Interface",
+                        text: "Take your time to familiarize yourself with all available buttons and controls. Each element serves a specific purpose in your gameplay.",
+                        target: null,
+                        centered: false
+                    },
+                    {
+                        title: "Ready to Play?",
+                        text: "You've learned the basics! Click 'Start Game' below to dismiss this tutorial and begin your adventure. Good luck!",
+                        target: null,
+                        centered: true
+                    }
+                ];
+
+                this.setupDOM();
+                this.attachEventListeners();
+            }
+
+            /**
+             * Set up DOM references
+             */
+            setupDOM() {
+                this.overlay = document.getElementById("tutorial-overlay");
+                this.backdrop = document.querySelector(".tutorial-backdrop");
+                this.spotlight = document.getElementById("tutorial-spotlight");
+                this.tutorialBox = document.getElementById("tutorial-box");
+                this.titleElement = document.getElementById("tutorial-title");
+                this.textElement = document.getElementById("tutorial-text");
+                this.nextButton = document.getElementById("tutorial-next-btn");
+                this.stepIndicator = document.getElementById("step-indicator");
+            }
+
+            /**
+             * Attach event listeners
+             */
+            attachEventListeners() {
+                this.nextButton.addEventListener("click", () => this.nextStep());
+                window.addEventListener("resize", () => this.updateLayout());
+            }
+
+            /**
+             * Start the tutorial
+             */
+            start() {
+                this.isActive = true;
+                this.currentStep = 0;
+                this.overlay.classList.add("active");
+                this.showStep();
+            }
+
+            /**
+             * Display current step
+             */
+            showStep() {
+                if (this.currentStep >= this.steps.length) {
+                    this.end();
+                    return;
+                }
+
+                const step = this.steps[this.currentStep];
+
+                // Update content
+                this.titleElement.textContent = step.title;
+                this.textElement.textContent = step.text;
+                this.stepIndicator.textContent = `Step ${this.currentStep + 1} of ${this.steps.length}`;
+                this.nextButton.textContent = this.currentStep === this.steps.length - 1 ? "Start Game ▶" : "Next →";
+
+                // Handle target highlighting
+                this.removeHighlight();
+                if (step.target) {
+                    this.highlightTarget(step.target);
+                }
+
+                // Position tutorial box
+                if (step.centered) {
+                    this.centerTutorialBox();
+                } else if (step.target) {
+                    this.positionBoxBelowTarget(step.target);
+                } else {
+                    this.centerTutorialBox();
+                }
+            }
+
+            /**
+             * Highlight target element
+             */
+            highlightTarget(selector) {
+                const targetElement = document.querySelector(selector);
+                if (!targetElement) return;
+
+                targetElement.classList.add("highlighted");
+
+                // Position spotlight
+                const rect = targetElement.getBoundingClientRect();
+                this.spotlight.style.left = (rect.left - 5) + "px";
+                this.spotlight.style.top = (rect.top - 5) + "px";
+                this.spotlight.style.width = (rect.width + 10) + "px";
+                this.spotlight.style.height = (rect.height + 10) + "px";
+            }
+
+            /**
+             * Remove highlight from any highlighted element
+             */
+            removeHighlight() {
+                const highlighted = document.querySelector(".highlighted");
+                if (highlighted) {
+                    highlighted.classList.remove("highlighted");
+                }
+            }
+
+            /**
+             * Position tutorial box below and centered relative to target
+             */
+            positionBoxBelowTarget(selector) {
+                const targetElement = document.querySelector(selector);
+                if (!targetElement) return;
+
+                const rect = targetElement.getBoundingClientRect();
+                const boxWidth = this.tutorialBox.offsetWidth;
+                const boxHeight = this.tutorialBox.offsetHeight;
+                const gap = 20; // Gap between target and box
+
+                // Calculate position: center horizontally relative to target, below vertically
+                const targetCenterX = rect.left + rect.width / 2;
+                let left = targetCenterX - boxWidth / 2;
+                let top = rect.bottom + gap;
+
+                // Keep box within viewport
+                const padding = 20;
+                if (left < padding) left = padding;
+                if (left + boxWidth > window.innerWidth - padding) {
+                    left = window.innerWidth - boxWidth - padding;
+                }
+
+                if (top + boxHeight > window.innerHeight - padding) {
+                    top = rect.top - boxHeight - gap;
+                }
+
+                // Apply positioning
+                this.tutorialBox.classList.remove("centered");
+                this.tutorialBox.style.left = left + "px";
+                this.tutorialBox.style.top = top + "px";
+                this.tutorialBox.style.transform = "none";
+            }
+
+            /**
+             * Center tutorial box on screen
+             */
+            centerTutorialBox() {
+                this.tutorialBox.classList.add("centered");
+            }
+
+            /**
+             * Update layout on window resize
+             */
+            updateLayout() {
+                if (!this.isActive) return;
+
+                const step = this.steps[this.currentStep];
+                if (step.centered) {
+                    this.centerTutorialBox();
+                } else if (step.target) {
+                    this.positionBoxBelowTarget(step.target);
+                }
+            }
+
+            /**
+             * Go to next step
+             */
+            nextStep() {
+                this.currentStep++;
+                if (this.currentStep >= this.steps.length) {
+                    this.end();
+                } else {
+                    this.showStep();
+                }
+            }
+
+            /**
+             * End the tutorial
+             */
+            end() {
+                this.isActive = false;
+                this.overlay.classList.remove("active");
+                this.removeHighlight();
+                this.spotlight.style.display = "none";
+                console.log("Tutorial completed!");
+                // Trigger game start here
+                alert("🎮 Tutorial Complete! Welcome to the game!");
+            }
+        }
+
+        /**
+         * Initialize tutorial on page load
+         */
+        document.addEventListener("DOMContentLoaded", () => {
+            const tutorial = new TutorialSystem();
+            tutorial.start();
+
+            // Optional: Add a button to restart tutorial
+            window.restartTutorial = () => {
+                tutorial.currentStep = 0;
+                tutorial.start();
+            };
+        });
+    </script>
+</body>
+</html>
