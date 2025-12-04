@@ -7,7 +7,7 @@ import fs from 'fs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
-const PORT = 8080;
+const PORT = 3000;
 
 app.use(express.json());
 app.use(express.static(__dirname));
