@@ -1166,8 +1166,8 @@
             
             <div class="grid grid-cols-2 gap-12">
                 <!-- LEFT COLUMN: Score & Stats -->
-                <div class="text-left">
-                    <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="text-left flex flex-col gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div class="stat-box">
                             <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Final Score</div>
                             <div id="summary-score" class="text-4xl text-neon-cyan font-bold digit-font">0</div>
@@ -1175,6 +1175,30 @@
                         <div class="stat-box">
                             <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Next Budget</div>
                             <div id="summary-budget" class="text-2xl text-neon-green font-bold digit-font">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Health Chart Under Score -->
+                    <div class="bg-slate-900/50 border border-slate-700 rounded p-2">
+                        <h4 class="text-xs font-bold text-neon-cyan mb-1">GRID HEALTH</h4>
+                        <p class="text-xs text-gray-500 mb-2">High imbalance destabilizes the grid. Balance is key.</p>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="summary-gap-analysis-chart"></canvas>
+                        </div>
+                        <!-- Summary Stats -->
+                        <div class="grid grid-cols-3 gap-2 mt-2 text-xs">
+                            <div class="bg-green-500/20 border border-green-500/40 rounded p-1 text-center">
+                                <div class="text-green-400 font-bold" id="summary-surplus-total">+0</div>
+                                <div class="text-gray-400">Total Surplus</div>
+                            </div>
+                            <div class="bg-red-500/20 border border-red-500/40 rounded p-1 text-center">
+                                <div class="text-red-400 font-bold" id="summary-deficit-total">-0</div>
+                                <div class="text-gray-400">Total Deficit</div>
+                            </div>
+                            <div class="bg-white/10 border border-white/20 rounded p-1 text-center">
+                                <div class="text-white font-bold" id="summary-balance-diff">0</div>
+                                <div class="text-gray-400">Net Balance</div>
+                            </div>
                         </div>
                     </div>
 
@@ -1214,41 +1238,41 @@
                 </div>
                 
                 <!-- RIGHT COLUMN: Analysis -->
-                <div class="text-left">
+                <div class="text-left flex flex-col gap-4">
                     <!-- Year Selector for Detailed Analysis -->
-                    <div class="mb-6 flex items-center gap-4">
+                    <div class="flex items-center gap-4">
                         <label class="text-sm font-bold text-gray-400">SELECT YEAR:</label>
                         <select id="summary-year-select" onchange="game.updateSummaryAnalysis()" class="bg-slate-800 border border-cyan-500/50 rounded px-3 py-1 text-sm text-neon-cyan font-mono cursor-pointer">
                             <!-- Options injected by JS -->
                         </select>
                     </div>
                     
-                    <!-- Analysis Section -->
+                    <!-- Analysis content -->
                     <div id="summary-analysis-content">
                         <!-- Overall Stats Grid -->
-                        <div id="summary-year-stats" class="grid grid-cols-2 gap-2 mb-4">
+                        <div id="summary-year-stats" class="grid grid-cols-4 gap-2 mb-3">
                             <div class="bg-slate-800/50 border border-cyan-500/30 rounded p-2">
                                 <div class="text-xs text-gray-400 mb-1">FINAL SCORE</div>
-                                <div id="summary-stat-score" class="text-xl font-bold text-neon-cyan">--</div>
+                                <div id="summary-stat-score" class="text-lg font-bold text-neon-cyan">--</div>
                             </div>
                             <div class="bg-slate-800/50 border border-blue-500/30 rounded p-2">
                                 <div class="text-xs text-gray-400 mb-1">AVG PRODUCTION</div>
-                                <div id="summary-stat-production" class="text-xl font-bold text-blue-400">0 MWh</div>
+                                <div id="summary-stat-production" class="text-lg font-bold text-blue-400">0 MWh</div>
                             </div>
                             <div class="bg-slate-800/50 border border-orange-500/30 rounded p-2">
                                 <div class="text-xs text-gray-400 mb-1">AVG DEMAND</div>
-                                <div id="summary-stat-demand" class="text-xl font-bold text-orange-400">0 MWh</div>
+                                <div id="summary-stat-demand" class="text-lg font-bold text-orange-400">0 MWh</div>
                             </div>
                             <div class="bg-slate-800/50 border border-green-500/30 rounded p-2">
                                 <div class="text-xs text-gray-400 mb-1">RELIABILITY</div>
-                                <div id="summary-stat-reliability" class="text-xl font-bold text-green-400">0%</div>
+                                <div id="summary-stat-reliability" class="text-lg font-bold text-green-400">0%</div>
                             </div>
                         </div>
                         
                         <!-- Key Metrics -->
-                        <div id="summary-year-metrics" class="grid grid-cols-2 gap-2 mb-4 text-xs">
+                        <div id="summary-year-metrics" class="grid grid-cols-2 gap-2 mb-3 text-xs">
                             <div class="bg-slate-800/30 border border-white/10 rounded p-2">
-                                <div class="text-gray-400 mb-2 text-xs">ENERGY BREAKDOWN</div>
+                                <div class="text-gray-400 mb-2 text-xs font-bold">ENERGY BREAKDOWN</div>
                                 <div id="summary-metrics-breakdown" class="space-y-1 font-mono text-gray-300 text-xs">
                                     <div class="flex justify-between"><span>Solar:</span><span id="summary-m-solar">0%</span></div>
                                     <div class="flex justify-between"><span>Wind:</span><span id="summary-m-wind">0%</span></div>
@@ -1256,7 +1280,7 @@
                                 </div>
                             </div>
                             <div class="bg-slate-800/30 border border-white/10 rounded p-2">
-                                <div class="text-gray-400 mb-2 text-xs">PERFORMANCE</div>
+                                <div class="text-gray-400 mb-2 text-xs font-bold">PERFORMANCE</div>
                                 <div id="summary-metrics-performance" class="space-y-1 font-mono text-gray-300 text-xs">
                                     <div class="flex justify-between"><span>Months Powered:</span><span id="summary-m-months">0/12</span></div>
                                     <div class="flex justify-between"><span>Blackouts:</span><span id="summary-m-blackouts" class="text-red-400">0</span></div>
@@ -1266,18 +1290,10 @@
                         </div>
                         
                         <!-- Graph Container -->
-                        <div class="bg-slate-900/50 border border-slate-700 rounded p-3">
-                            <h4 class="text-xs font-bold text-neon-cyan mb-2">ENERGY ANALYSIS</h4>
-                            <div style="position: relative; height: 250px;">
+                        <div class="bg-slate-900/50 border border-slate-700 rounded p-2">
+                            <h4 class="text-xs font-bold text-neon-cyan mb-1">ENERGY ANALYSIS</h4>
+                            <div style="position: relative; height: 280px;">
                                 <canvas id="summary-analysis-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <!-- Grid Gap/Deficit Chart -->
-                        <div class="bg-slate-900/50 border border-slate-700 rounded p-3 mt-4">
-                            <h4 class="text-xs font-bold text-neon-cyan mb-2">GRID HEALTH: Deficit (Higher = Worse)</h4>
-                            <div style="position: relative; height: 200px;">
-                                <canvas id="summary-gap-analysis-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -1618,41 +1634,41 @@
                 </div>
                 <div id="build-menu-content" class="p-3 grid grid-cols-3 gap-3 w-full">
                     <button onclick="game.selectTool('solar')" id="btn-solar" class="tech-btn w-full h-20 flex flex-col items-center justify-center group">
-                        <i data-lucide="solar-panel" class="w-9 h-9 text-blue-300 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="solar-panel" class="w-12 h-12 text-blue-300 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-neon-cyan">SOLAR</span>
                         <span class="text-[9px] text-yellow-400">450cr</span>
                         <span id="limit-solar" class="text-[9px] text-gray-600 font-mono">--/--</span>
                     </button>
 
                     <button onclick="game.selectTool('wind')" id="btn-wind" class="tech-btn w-full h-20 flex flex-col items-center justify-center group">
-                        <i data-lucide="fan" class="w-9 h-9 text-pink-300 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="fan" class="w-12 h-12 text-pink-300 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-neon-pink">WIND</span>
                         <span class="text-[9px] text-yellow-400">700cr</span>
                         <span id="limit-wind" class="text-[9px] text-gray-600 font-mono">--/--</span>
                     </button>
 
                     <button onclick="game.selectTool('hydro')" id="btn-hydro" class="tech-btn w-full h-20 flex flex-col items-center justify-center group">
-                        <i data-lucide="dam" class="w-9 h-9 text-cyan-300 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="dam" class="w-12 h-12 text-cyan-300 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-white">HYDRO</span>
                         <span class="text-[9px] text-yellow-400">600cr</span>
                         <span id="limit-hydro" class="text-[9px] text-gray-600 font-mono">--/--</span>
                     </button>
 
                     <button onclick="game.selectTool('battery')" id="btn-battery" class="tech-btn w-full h-20 flex flex-col items-center justify-center group">
-                        <i data-lucide="battery-charging" class="w-9 h-9 text-green-400 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="battery-charging" class="w-12 h-12 text-green-400 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-neon-green">BATTERY</span>
                         <span class="text-[9px] text-yellow-400">200cr</span>
                         <span id="limit-battery" class="text-[9px] text-gray-600 font-mono">--/--</span>
                     </button>
 
                     <button onclick="game.selectTool('bulldoze')" id="btn-bulldoze" class="tech-btn w-full h-20 flex flex-col items-center justify-center group border-red-500/30">
-                        <i data-lucide="trash-2" class="w-9 h-9 text-red-400 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="trash-2" class="w-12 h-12 text-red-400 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-red-400">BULLDOZE</span>
                         <span class="text-[9px] text-gray-500">50% REF</span>
                     </button>
 
                     <button onclick="game.selectTool('export')" id="btn-export" class="tech-btn w-full h-20 flex flex-col items-center justify-center group">
-                        <i data-lucide="circle-dollar-sign" class="w-9 h-9 text-purple-400 mb-1 group-hover:text-white transition-colors"></i>
+                    <i data-lucide="circle-dollar-sign" class="w-12 h-12 text-purple-400 mb-1 group-hover:text-white transition-colors"></i>
                         <span class="text-[10px] font-bold text-gray-400 tracking-wider group-hover:text-purple-300">EXPORT</span>
                         <span class="text-[9px] text-yellow-400">1200cr</span>
                         <span id="limit-export" class="text-[9px] text-gray-600 font-mono">--/--</span>
@@ -1863,7 +1879,9 @@
             constructionTime: 3, 
             demandGrowth: 0.02,
             repairCost: 150, 
-            repairTime: 3    
+            repairTime: 3,
+            bulldozeCost: 150,
+            forestRemovalPenalty: 12
         };
 
         // --- GAME STATE ---
@@ -1878,9 +1896,11 @@
                 destroy: null,
                 talk: null
             },
+            forestCleared: 0,
             grid: [],
             budget: CONFIG.budget,
             selectedTool: null,
+            yearCounter: 1,
             upgradeLevel: 0,
             currentRegion: 'atlantic',
             
@@ -2295,20 +2315,23 @@
                 
                 const months = MONTHS;
                 let demandData = [];
-                let gapData = []; // Negative = surplus, Positive = deficit
+                let gapData = []; // Positive = surplus, Negative = deficit
                 
                 if (yearData.monthlyData && yearData.monthlyData.length > 0) {
                     demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
                     gapData = yearData.monthlyData.map(m => {
-                        const combined = (m.production || 0) + (m.batteryLevel || 0);
+                        const production = m.production || 0;
+                        const battery = m.batteryLevel || 0;
+                        const exported = m.exported || 0;
                         const demand = m.demand || yearData.demand;
-                        return demand - combined; // Positive = deficit, Negative = surplus
+                        return (battery + production - exported) - demand; // Positive = surplus, Negative = deficit
                     });
                 } else {
                     demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
                     const production = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
                     const battery = months.map((_, i) => Math.round(Math.random() * 200));
-                    gapData = demandData.map((demand, i) => demand - (production[i] + battery[i]));
+                    const exported = months.map((_, i) => Math.round(Math.random() * 50));
+                    gapData = demandData.map((demand, i) => (battery[i] + production[i] - exported[i]) - demand);
                 }
                 
                 if (this.gapAnalysisChart) {
@@ -2323,8 +2346,8 @@
                             {
                                 label: 'Grid Balance (MWh)',
                                 data: gapData,
-                                backgroundColor: gapData.map(val => val > 0 ? '#ff3333' : '#00ff9d'),
-                                borderColor: gapData.map(val => val > 0 ? '#ff1111' : '#00dd88'),
+                                backgroundColor: gapData.map(val => val > 0 ? '#00ff9d' : '#ff3333'),
+                                borderColor: gapData.map(val => val > 0 ? '#00dd88' : '#ff1111'),
                                 borderWidth: 1,
                                 borderRadius: 4
                             }
@@ -2355,9 +2378,9 @@
                                     afterLabel: function(context) {
                                         const val = context.parsed.y;
                                         if (val > 0) {
-                                            return 'Deficit: Energy shortage';
-                                        } else if (val < 0) {
                                             return 'Surplus: Extra energy';
+                                        } else if (val < 0) {
+                                            return 'Deficit: Energy shortage';
                                         }
                                         return 'Grid balanced';
                                     }
@@ -2399,10 +2422,11 @@
                     energyMix.hydro = Math.round((breakdown.hydro / totalBuildings) * 100);
                 }
                 
+                const yearLabel = `Year ${this.yearCounter}`;
                 const yearData = {
                     score: Math.floor(score),
                     region: this.currentRegion,
-                    date: new Date().toLocaleDateString(),
+                    date: yearLabel,
                     monthsPowered: this.simResults.monthsPowered || 0,
                     blackouts: 12 - (this.simResults.monthsPowered || 0),
                     exportEarnings: Math.floor(this.simResults.exportEarnings || 0),
@@ -2417,13 +2441,14 @@
                 scores.push({
                     score: Math.floor(score),
                     region: this.currentRegion,
-                    date: new Date().toLocaleDateString()
+                    date: yearLabel
                 });
                 
                 gameHistory.push(yearData);
                 
                 localStorage.setItem('energyGameScores', JSON.stringify(scores));
                 localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
+                this.yearCounter++;
             },
 
             initRegionSelector() {
@@ -2518,6 +2543,7 @@
 
                 this.stopSimulation();
                 this.budget = CONFIG.budget;
+                this.yearCounter = 1;
                 this.upgradeLevel = 0;
                 this.selectedTool = null;
                 this.updateBuildCursor();
@@ -3539,19 +3565,34 @@
                 }
 
                 if (tile.type === 'forest' || tile.type === 'mountain') {
-                    this.showMessage("Cannot build on obstacles.");
-                    const el = document.getElementById('game-grid').children[index];
-                    el.style.backgroundColor = 'rgba(239, 68, 68, 0.5)';
-                    setTimeout(() => el.style.backgroundColor = '', 200);
-                    return;
+                    if (this.selectedTool !== 'bulldoze') {
+                        this.showMessage("Cannot build on obstacles.");
+                        const el = document.getElementById('game-grid').children[index];
+                        el.style.backgroundColor = 'rgba(239, 68, 68, 0.5)';
+                        setTimeout(() => el.style.backgroundColor = '', 200);
+                        return;
+                    }
+                    if (tile.type === 'mountain') {
+                        this.showMessage("Mountain terrain cannot be cleared.");
+                        return;
+                    }
                 }
 
                 if (this.selectedTool === 'bulldoze') {
+                    const isObstacle = tile.type === 'forest';
+                    const hasTarget = tile.isConstruction || tile.building || isObstacle;
+                    if (!hasTarget) {
+                        this.showMessage("Nothing to bulldoze here.");
+                        return;
+                    }
+                    if (this.budget < CONFIG.bulldozeCost) {
+                        this.showMessage(`Bulldozing requires ${CONFIG.bulldozeCost} Credits.`);
+                        return;
+                    }
+                    
+                    this.budget -= CONFIG.bulldozeCost;
+                    
                     if (tile.isConstruction) {
-                        const type = tile.pendingType;
-                        const refund = CONFIG.buildings[type] ? CONFIG.buildings[type].cost * 0.5 : 0;
-                        this.budget -= refund;
-                        
                         tile.isConstruction = false;
                         tile.building = null;
                         tile.pendingType = null;
@@ -3560,21 +3601,23 @@
                         
                         this.renderGrid();
                         this.updateUI();
-                        this.showMessage(`Construction Cancelled. +${refund} Credits`);
+                        this.showMessage(`Construction cancelled. -${CONFIG.bulldozeCost} Credits`);
                         return;
                     }
                     
                     if (tile.building) {
-                        const refund = CONFIG.buildings[tile.building].cost * 0.5;
-                        this.budget += refund;
                         tile.building = null;
                         tile.isBroken = false; // Ensure broken state clears
                         this.playSound('destroy');
                         this.renderGrid();
                         this.updateUI();
-                        this.showMessage(`Unit dismantled. +${refund} Credits`);
-                    } else {
-                        this.showMessage("Nothing to bulldoze here.");
+                        this.showMessage(`Unit dismantled. -${CONFIG.bulldozeCost} Credits`);
+                    } else if (isObstacle) {
+                        tile.type = 'land';
+                        this.playSound('destroy');
+                        this.renderGrid();
+                        this.updateUI();
+                        this.showMessage(`Obstacle cleared. -${CONFIG.bulldozeCost} Credits`);
                     }
                     return;
                 }
@@ -4643,36 +4686,51 @@
                 
                 const months = MONTHS;
                 let demandData = [];
-                let gapData = [];
+                let gapData = []; // Positive = surplus, Negative = deficit
                 
                 if (yearData.monthlyData && yearData.monthlyData.length > 0) {
                     demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
                     gapData = yearData.monthlyData.map(m => {
-                        const combined = (m.production || 0) + (m.batteryLevel || 0);
+                        const production = m.production || 0;
+                        const battery = m.batteryLevel || 0;
+                        const exported = m.exported || 0;
                         const demand = m.demand || yearData.demand;
-                        return Math.max(0, demand - combined);
+                        return (battery + production - exported) - demand; // Positive = surplus, Negative = deficit
                     });
                 } else {
                     demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
                     const production = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
                     const battery = months.map((_, i) => Math.round(Math.random() * 200));
-                    gapData = demandData.map((demand, i) => Math.max(0, demand - (production[i] + battery[i])));
+                    const exported = months.map((_, i) => Math.round(Math.random() * 50));
+                    gapData = demandData.map((demand, i) => (battery[i] + production[i] - exported[i]) - demand);
                 }
+                
+                // Calculate summary stats
+                const totalSurplus = gapData.filter(v => v > 0).reduce((a, b) => a + b, 0);
+                const totalDeficit = gapData.filter(v => v < 0).reduce((a, b) => a + b, 0);
+                const netBalance = totalSurplus + totalDeficit;
+                
+                // Update summary display
+                document.getElementById('summary-surplus-total').textContent = '+' + Math.round(totalSurplus);
+                document.getElementById('summary-deficit-total').textContent = Math.round(totalDeficit);
+                document.getElementById('summary-balance-diff').textContent = Math.round(netBalance);
                 
                 if (this.summaryGapAnalysisChart) {
                     this.summaryGapAnalysisChart.destroy();
                 }
                 
+                // Chart.js doesn't have built-in labels on bars, so we'll use datalabels plugin if available
+                // For now, we'll use tooltips and add a custom rendering
                 this.summaryGapAnalysisChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: months,
                         datasets: [
                             {
-                                label: 'Energy Deficit (MWh)',
+                                label: 'Grid Balance (MWh)',
                                 data: gapData,
-                                backgroundColor: gapData.map(val => val > yearData.demand * 0.3 ? '#ff3333' : '#ff9d00'),
-                                borderColor: '#ff1111',
+                                backgroundColor: gapData.map(val => val > 0 ? '#00ff9d' : '#ff3333'),
+                                borderColor: gapData.map(val => val > 0 ? '#00dd88' : '#ff1111'),
                                 borderWidth: 1,
                                 borderRadius: 3
                             }
@@ -4700,12 +4758,27 @@
                                 borderWidth: 1,
                                 padding: 10,
                                 titleFont: { size: 11, weight: 'bold' },
-                                bodyFont: { size: 10 }
+                                bodyFont: { size: 10 },
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.parsed.y;
+                                        return 'Balance: ' + Math.round(val) + ' MWh';
+                                    },
+                                    afterLabel: function(context) {
+                                        const val = context.parsed.y;
+                                        if (val > 0) {
+                                            return 'Surplus: Extra energy';
+                                        } else if (val < 0) {
+                                            return 'Deficit: Energy shortage';
+                                        }
+                                        return 'Grid balanced';
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
-                                beginAtZero: true,
+                                type: 'linear',
                                 ticks: { color: '#94a3b8', font: { size: 9 } },
                                 grid: { color: 'rgba(255,255,255,0.05)' }
                             },
@@ -4716,6 +4789,38 @@
                         }
                     }
                 });
+                
+                // Add data labels on top/bottom of bars using canvas drawing
+                const plugin = {
+                    id: 'customCanvasBackgroundColor',
+                    afterDatasetsDraw(chart) {
+                        const { ctx, data, chartArea: { left, top, width, height } } = chart;
+                        ctx.save();
+                        
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((datapoint, index) => {
+                                const { x, y } = datapoint.tooltipPosition(false);
+                                const value = Math.round(gapData[index]);
+                                
+                                if (value !== 0) {
+                                    ctx.fillStyle = value > 0 ? '#00ff9d' : '#ff3333';
+                                    ctx.font = 'bold 8px Arial';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = value > 0 ? 'bottom' : 'top';
+                                    const offsetY = value > 0 ? -3 : 3;
+                                    ctx.fillText(value, x, y + offsetY);
+                                }
+                            });
+                        });
+                        ctx.restore();
+                    }
+                };
+                
+                // Register and update plugin
+                Chart.unregister(plugin);
+                Chart.register(plugin);
+                this.summaryGapAnalysisChart.update();
             },
 
             backToStart() {

@@ -127,27 +127,25 @@
             display: block;
         }
 
-        /* Dark Backdrop - 80% Black Opacity */
+        /* Dark Backdrop - 15% Black Opacity */
         .tutorial-backdrop {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.1);
             z-index: 1;
         }
 
-        /* Spotlight Effect - Invisible cutout for highlighted element */
+        /* Spotlight Effect - Circular hole cutout for highlighted element */
         .tutorial-spotlight {
             position: absolute;
-            border-radius: 8px;
             z-index: 2;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8),
-                        inset 0 0 25px rgba(255, 255, 0, 0.4);
             pointer-events: none;
             transition: all 0.4s ease;
-            border: 3px solid rgba(255, 255, 0, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
         }
 
         /* Tutorial Instruction Box */
@@ -426,12 +424,17 @@
 
                 targetElement.classList.add("highlighted");
 
-                // Position spotlight
+                // Position spotlight as a circle
                 const rect = targetElement.getBoundingClientRect();
-                this.spotlight.style.left = (rect.left - 5) + "px";
-                this.spotlight.style.top = (rect.top - 5) + "px";
-                this.spotlight.style.width = (rect.width + 10) + "px";
-                this.spotlight.style.height = (rect.height + 10) + "px";
+                // Calculate the largest circle that fits the button
+                const maxDimension = Math.max(rect.width, rect.height) + 30;
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                this.spotlight.style.left = (centerX - maxDimension / 2) + "px";
+                this.spotlight.style.top = (centerY - maxDimension / 2) + "px";
+                this.spotlight.style.width = maxDimension + "px";
+                this.spotlight.style.height = maxDimension + "px";
             }
 
             /**
