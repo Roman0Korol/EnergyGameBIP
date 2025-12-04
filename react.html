@@ -1092,7 +1092,8 @@
                 
                 <!-- Graph Container -->
                 <div class="bg-slate-900/50 border border-slate-700 rounded p-4">
-                    <h4 class="text-sm font-bold text-neon-cyan mb-3">MONTHLY DEMAND vs PRODUCTION</h4>
+                    <h4 class="text-sm font-bold text-neon-cyan mb-3">ENERGY ANALYSIS: Demand vs Production + Storage</h4>
+                    <p class="text-xs text-gray-500 mb-3">The closer Production + Storage meets Demand, the better your grid performance</p>
                     <div style="position: relative; height: 300px;">
                         <canvas id="analysis-chart"></canvas>
                     </div>
@@ -2033,14 +2034,23 @@
                 const months = MONTHS;
                 let demandData = [];
                 let productionData = [];
+                let batteryData = [];
+                let combinedCapacityData = [];
                 
                 if (yearData.monthlyData && yearData.monthlyData.length > 0) {
                     demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
                     productionData = yearData.monthlyData.map(m => m.production || 0);
+                    batteryData = yearData.monthlyData.map(m => m.batteryLevel || 0);
+                    // Combined = Production + Battery Storage available
+                    combinedCapacityData = yearData.monthlyData.map((m, i) => {
+                        return (m.production || 0) + (m.batteryLevel || 0);
+                    });
                 } else {
                     // Generate estimated data based on yearly average
                     demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
                     productionData = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
+                    batteryData = months.map((_, i) => Math.round(Math.random() * 200)); // Random battery levels
+                    combinedCapacityData = productionData.map((prod, i) => prod + batteryData[i]);
                 }
                 
                 // Destroy old chart if exists
@@ -2057,23 +2067,53 @@
                                 label: 'Demand (MWh)',
                                 data: demandData,
                                 borderColor: '#ff9d00',
-                                backgroundColor: 'rgba(255, 157, 0, 0.1)',
-                                borderWidth: 2,
+                                backgroundColor: 'rgba(255, 157, 0, 0.15)',
+                                borderWidth: 3,
                                 fill: true,
                                 tension: 0.4,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#ff9d00'
+                                pointRadius: 5,
+                                pointBackgroundColor: '#ff9d00',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 1,
+                                borderDash: []
                             },
                             {
-                                label: 'Production (MWh)',
+                                label: 'Production + Storage (MWh)',
+                                data: combinedCapacityData,
+                                borderColor: '#00ff9d',
+                                backgroundColor: 'rgba(0, 255, 157, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#00ff9d',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 1,
+                                borderDash: []
+                            },
+                            {
+                                label: 'Production Only (MWh)',
                                 data: productionData,
                                 borderColor: '#00f3ff',
-                                backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                                backgroundColor: 'rgba(0, 243, 255, 0.08)',
                                 borderWidth: 2,
                                 fill: true,
                                 tension: 0.4,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#00f3ff'
+                                pointRadius: 3,
+                                pointBackgroundColor: '#00f3ff',
+                                borderDash: [5, 5]
+                            },
+                            {
+                                label: 'Battery Storage (MWh)',
+                                data: batteryData,
+                                borderColor: '#a855f7',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#a855f7',
+                                borderDash: [5, 5]
                             }
                         ]
                     },
@@ -2086,27 +2126,62 @@
                                 labels: {
                                     color: '#cbd5e1',
                                     font: { size: 12, weight: 'bold' },
-                                    padding: 15
-                                }
+                                    padding: 15,
+                                    usePointStyle: true
+                                },
+                                position: 'top'
                             },
                             tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
                                 titleColor: '#fff',
                                 bodyColor: '#cbd5e1',
-                                borderColor: 'rgba(0, 243, 255, 0.3)',
-                                borderWidth: 1
+                                borderColor: 'rgba(0, 243, 255, 0.5)',
+                                borderWidth: 1,
+                                padding: 12,
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        if (context.datasetIndex === 1) { // Combined capacity line
+                                            const demandValue = context.chart.data.datasets[0].data[context.dataIndex];
+                                            const combinedValue = context.parsed.y;
+                                            const margin = combinedValue - demandValue;
+                                            const status = margin >= 0 ? '✓ SURPLUS' : '✗ DEFICIT';
+                                            return `Margin: ${Math.round(margin)} MWh ${status}`;
+                                        }
+                                        return '';
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
                                 display: true,
-                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                ticks: { color: '#94a3b8', font: { size: 11 } }
+                                grid: { 
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    drawBorder: true
+                                },
+                                ticks: { 
+                                    color: '#94a3b8', 
+                                    font: { size: 11 }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Energy (MWh)',
+                                    color: '#cbd5e1',
+                                    font: { size: 12, weight: 'bold' }
+                                }
                             },
                             x: {
                                 display: true,
-                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                ticks: { color: '#94a3b8', font: { size: 11 } }
+                                grid: { 
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    drawBorder: true
+                                },
+                                ticks: { 
+                                    color: '#94a3b8', 
+                                    font: { size: 11 }
+                                }
                             }
                         }
                     }
