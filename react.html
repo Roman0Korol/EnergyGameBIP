@@ -823,12 +823,14 @@
             border: 2px solid #4338ca;
             box-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
             border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
+            width: 95%;
+            max-width: 1400px;
+            max-height: 85vh;
             padding: 2rem;
             text-align: center;
             transform: translateY(20px);
             transition: transform 0.3s ease;
+            overflow-y: auto;
         }
         
         .modal-backdrop.visible .modal-content {
@@ -855,8 +857,10 @@
     <audio id="bg-music" src="music/background_music.mp3" loop></audio>
     <audio id="sound-success" src="music/game_good_job.mp3"></audio>
     <audio id="sound-fail" src="music/game_over.mp3"></audio>
-    <audio id="sound-build" src="music/building.mp3"></audio>
+    <audio id="sound-build-start" src="music/building1.mp3"></audio>
+    <audio id="sound-build-complete" src="music/building2.mp3"></audio>
     <audio id="sound-destroy" src="music/destroy_building.mp3"></audio>
+    <audio id="sound-talk" src="music/talking.mp3"></audio>
 
     <!-- Start Screen -->
     <div id="start-screen">
@@ -1151,52 +1155,120 @@
             <h2 class="text-3xl font-bold text-white digit-font mb-2">ANNUAL REPORT</h2>
             <div class="w-full h-px bg-white/10 mb-6"></div>
             
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="stat-box">
-                    <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Final Score</div>
-                    <div id="summary-score" class="text-4xl text-neon-cyan font-bold digit-font">0</div>
+            <div class="grid grid-cols-2 gap-12">
+                <!-- LEFT COLUMN: Score & Stats -->
+                <div class="text-left">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="stat-box">
+                            <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Final Score</div>
+                            <div id="summary-score" class="text-4xl text-neon-cyan font-bold digit-font">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Next Budget</div>
+                            <div id="summary-budget" class="text-2xl text-neon-green font-bold digit-font">0</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-left text-sm text-gray-300 bg-black/20 p-4 rounded">
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-4 border-b border-white/10 pb-4">
+                            <div class="flex justify-between">
+                                <span>Autonomy:</span>
+                                <span id="summary-autonomy" class="font-bold text-blue-400">0/100</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Reliability:</span>
+                                <span id="summary-reliability" class="font-bold text-pink-400">0/100</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Environment:</span>
+                                <span id="summary-environment" class="font-bold text-green-400">0/100</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Economy:</span>
+                                <span id="summary-economy" class="font-bold text-orange-400">0/100</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span>Uptime:</span>
+                            <span id="summary-uptime" class="font-bold text-white">0/12 Months</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Blackouts:</span>
+                            <span id="summary-blackouts" class="font-bold text-red-400">0</span>
+                        </div>
+                        <div class="flex justify-between border-t border-white/10 pt-2 mt-2">
+                            <span>Export Earnings:</span>
+                            <span id="summary-exports" class="font-bold text-purple-300">0 cr</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Next Budget</div>
-                    <div id="summary-budget" class="text-2xl text-neon-green font-bold digit-font">0</div>
+                
+                <!-- RIGHT COLUMN: Analysis -->
+                <div class="text-left">
+                    <!-- Year Selector for Detailed Analysis -->
+                    <div class="mb-6 flex items-center gap-4">
+                        <label class="text-sm font-bold text-gray-400">SELECT YEAR:</label>
+                        <select id="summary-year-select" onchange="game.updateSummaryAnalysis()" class="bg-slate-800 border border-cyan-500/50 rounded px-3 py-1 text-sm text-neon-cyan font-mono cursor-pointer">
+                            <!-- Options injected by JS -->
+                        </select>
+                    </div>
+                    
+                    <!-- Analysis Section -->
+                    <div id="summary-analysis-content">
+                        <!-- Overall Stats Grid -->
+                        <div id="summary-year-stats" class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="bg-slate-800/50 border border-cyan-500/30 rounded p-2">
+                                <div class="text-xs text-gray-400 mb-1">FINAL SCORE</div>
+                                <div id="summary-stat-score" class="text-xl font-bold text-neon-cyan">--</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-blue-500/30 rounded p-2">
+                                <div class="text-xs text-gray-400 mb-1">AVG PRODUCTION</div>
+                                <div id="summary-stat-production" class="text-xl font-bold text-blue-400">0 MWh</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-orange-500/30 rounded p-2">
+                                <div class="text-xs text-gray-400 mb-1">AVG DEMAND</div>
+                                <div id="summary-stat-demand" class="text-xl font-bold text-orange-400">0 MWh</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-green-500/30 rounded p-2">
+                                <div class="text-xs text-gray-400 mb-1">RELIABILITY</div>
+                                <div id="summary-stat-reliability" class="text-xl font-bold text-green-400">0%</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Key Metrics -->
+                        <div id="summary-year-metrics" class="grid grid-cols-2 gap-2 mb-4 text-xs">
+                            <div class="bg-slate-800/30 border border-white/10 rounded p-2">
+                                <div class="text-gray-400 mb-2 text-xs">ENERGY BREAKDOWN</div>
+                                <div id="summary-metrics-breakdown" class="space-y-1 font-mono text-gray-300 text-xs">
+                                    <div class="flex justify-between"><span>Solar:</span><span id="summary-m-solar">0%</span></div>
+                                    <div class="flex justify-between"><span>Wind:</span><span id="summary-m-wind">0%</span></div>
+                                    <div class="flex justify-between"><span>Hydro:</span><span id="summary-m-hydro">0%</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/30 border border-white/10 rounded p-2">
+                                <div class="text-gray-400 mb-2 text-xs">PERFORMANCE</div>
+                                <div id="summary-metrics-performance" class="space-y-1 font-mono text-gray-300 text-xs">
+                                    <div class="flex justify-between"><span>Months Powered:</span><span id="summary-m-months">0/12</span></div>
+                                    <div class="flex justify-between"><span>Blackouts:</span><span id="summary-m-blackouts" class="text-red-400">0</span></div>
+                                    <div class="flex justify-between"><span>Exports:</span><span id="summary-m-exports" class="text-purple-400">0 cr</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Graph Container -->
+                        <div class="bg-slate-900/50 border border-slate-700 rounded p-3">
+                            <h4 class="text-xs font-bold text-neon-cyan mb-2">ENERGY ANALYSIS</h4>
+                            <div style="position: relative; height: 250px;">
+                                <canvas id="summary-analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="space-y-3 text-left text-sm text-gray-300 mb-8 bg-black/20 p-4 rounded">
-                <div class="grid grid-cols-2 gap-y-2 gap-x-4 mb-4 border-b border-white/10 pb-4">
-                    <div class="flex justify-between">
-                        <span>Autonomy:</span>
-                        <span id="summary-autonomy" class="font-bold text-blue-400">0/100</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Reliability:</span>
-                        <span id="summary-reliability" class="font-bold text-pink-400">0/100</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Environment:</span>
-                        <span id="summary-environment" class="font-bold text-green-400">0/100</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Economy:</span>
-                        <span id="summary-economy" class="font-bold text-orange-400">0/100</span>
-                    </div>
-                </div>
-
-                <div class="flex justify-between">
-                    <span>Uptime:</span>
-                    <span id="summary-uptime" class="font-bold text-white">0/12 Months</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Blackouts:</span>
-                    <span id="summary-blackouts" class="font-bold text-red-400">0</span>
-                </div>
-                <div class="flex justify-between border-t border-white/10 pt-2 mt-2">
-                    <span>Export Earnings:</span>
-                    <span id="summary-exports" class="font-bold text-purple-300">0 cr</span>
-                </div>
-            </div>
-
-            <button onclick="game.closeSummaryAndNextYear()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg tracking-widest rounded shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all">
+            
+            <!-- Button: Full Width, Centered -->
+            <button onclick="game.closeSummaryAndNextYear()" class="w-1/2 mx-auto block mt-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg tracking-widest rounded shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all">
                 BEGIN NEXT YEAR
             </button>
         </div>
@@ -1767,7 +1839,7 @@
             exportRate: 0.3,
             noiseFine: 50,
             maxBuilders: 3,
-            constructionTime: 2, 
+            constructionTime: 3, 
             demandGrowth: 0.02,
             repairCost: 150, 
             repairTime: 3    
@@ -1780,8 +1852,10 @@
                 bg: null,
                 success: null,
                 fail: null,
-                build: null,
-                destroy: null
+                buildStart: null,
+                buildComplete: null,
+                destroy: null,
+                talk: null
             },
             grid: [],
             budget: CONFIG.budget,
@@ -1821,15 +1895,18 @@
             isGridHover: false,
             farmerAvatar: null,
             analysisChart: null,
+            summaryAnalysisChart: null,
             currentFlightTab: 'scores',
 
             init() {
                 this.audio.bg = document.getElementById('bg-music');
                 this.audio.success = document.getElementById('sound-success');
                 this.audio.fail = document.getElementById('sound-fail');
-                this.audio.build = document.getElementById('sound-build');
+                this.audio.buildStart = document.getElementById('sound-build-start');
+                this.audio.buildComplete = document.getElementById('sound-build-complete');
                 this.audio.destroy = document.getElementById('sound-destroy');
-                this.audio.bg.volume = 0.15; // Set a low volume for background music
+                this.audio.talk = document.getElementById('sound-talk');
+                this.audio.bg.volume = 0; // Set a low volume for background music
 
                 this.buildCursorEl = document.getElementById('build-cursor');
                 window.addEventListener('mousemove', (e) => this.moveBuildCursor(e));
@@ -2743,6 +2820,7 @@
                             </div>
                         </div>
                     `;
+                    this.playSound('talk');
                 } catch (err) {
                     advisorPanel.innerHTML = `
                         <div class="advisor-row">
@@ -3295,7 +3373,7 @@
                     tile.isBroken = false; // Ensure broken state is cleared after repair
                     tile.building = type;
                     this.activeBuilders--;
-                    this.playSound('build');
+                    this.playSound('buildComplete');
                     this.renderGrid();
                     this.updateUI();
                     this.showMessage(`${type.toUpperCase()} Construction Complete`);
@@ -3443,7 +3521,7 @@
                 tile.isConstruction = true;
                 tile.pendingType = this.selectedTool;
                 this.activeBuilders++;
-                this.playSound('build');
+                this.playSound('buildStart');
                 
                 this.renderGrid();
                 this.updateUI();
@@ -3492,8 +3570,9 @@
             playSound(kind) {
                 const audioEl = this.audio[kind];
                 if (audioEl) {
-                    audioEl.currentTime = 0;
-                    audioEl.play().catch(() => {});
+                    const clone = audioEl.cloneNode(true);
+                    clone.volume = audioEl.volume;
+                    clone.play().catch(() => {});
                 }
             },
 
@@ -4172,6 +4251,9 @@
                 const modal = document.getElementById('summary-modal');
                 modal.classList.remove('hidden');
                 requestAnimationFrame(() => modal.classList.add('visible'));
+                
+                // Load year selector with analysis for summary modal
+                this.loadSummaryYears();
 
                 // Update Button to "Next Year" mode
                 // The reset() function now handles restoring the button state.
@@ -4237,6 +4319,198 @@
                     this.updatePredictions();
                     document.getElementById('analysis-text').innerHTML = `<span class="text-neon-green font-bold">NEW YEAR: Demand adjusted to ${CONFIG.demand.toLocaleString()} MWh.</span>`;
                 }
+            },
+            
+            loadSummaryYears() {
+                const gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+                const yearSelect = document.getElementById('summary-year-select');
+                
+                if (gameHistory.length === 0) {
+                    yearSelect.innerHTML = '<option value="">No data available</option>';
+                    return;
+                }
+                
+                yearSelect.innerHTML = gameHistory.map((year, idx) => `
+                    <option value="${idx}">${year.region} - ${year.date}</option>
+                `).join('');
+                
+                // Set to the last (most recent/current) year by default
+                yearSelect.value = gameHistory.length - 1;
+                
+                // Load analysis for the current year
+                this.updateSummaryAnalysis();
+            },
+            
+            updateSummaryAnalysis() {
+                const gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+                const yearSelect = document.getElementById('summary-year-select');
+                const selectedIdx = parseInt(yearSelect.value);
+                
+                if (selectedIdx < 0 || selectedIdx >= gameHistory.length) return;
+                
+                const yearData = gameHistory[selectedIdx];
+                
+                // Convert score back to letter grade
+                let letterGrade = 'F';
+                const score = yearData.score;
+                if (score >= 9000) letterGrade = 'A+';
+                else if (score >= 8500) letterGrade = 'A';
+                else if (score >= 8000) letterGrade = 'A-';
+                else if (score >= 7500) letterGrade = 'B+';
+                else if (score >= 7000) letterGrade = 'B';
+                else if (score >= 6500) letterGrade = 'B-';
+                else if (score >= 6000) letterGrade = 'C+';
+                else if (score >= 5500) letterGrade = 'C';
+                else if (score >= 5000) letterGrade = 'C-';
+                else if (score >= 4000) letterGrade = 'D';
+                else if (score >= 3000) letterGrade = 'E';
+                
+                // Update stats
+                document.getElementById('summary-stat-score').innerText = letterGrade;
+                document.getElementById('summary-stat-production').innerText = `${yearData.avgProduction} MWh`;
+                document.getElementById('summary-stat-demand').innerText = `${yearData.demand} MWh`;
+                document.getElementById('summary-stat-reliability').innerText = `${Math.round((yearData.monthsPowered / 12) * 100)}%`;
+                
+                // Update metrics
+                document.getElementById('summary-m-solar').innerText = `${yearData.energyMix.solar}%`;
+                document.getElementById('summary-m-wind').innerText = `${yearData.energyMix.wind}%`;
+                document.getElementById('summary-m-hydro').innerText = `${yearData.energyMix.hydro}%`;
+                document.getElementById('summary-m-months').innerText = `${yearData.monthsPowered}/12`;
+                document.getElementById('summary-m-blackouts').innerText = `${yearData.blackouts}`;
+                document.getElementById('summary-m-exports').innerText = `${yearData.exportEarnings.toLocaleString()} cr`;
+                
+                // Draw chart
+                this.drawSummaryAnalysisChart(yearData);
+            },
+            
+            drawSummaryAnalysisChart(yearData) {
+                const ctx = document.getElementById('summary-analysis-chart');
+                if (!ctx) return;
+                
+                // Prepare data with monthly history
+                const months = MONTHS;
+                let demandData = [];
+                let productionData = [];
+                let batteryData = [];
+                let combinedCapacityData = [];
+                
+                if (yearData.monthlyData && yearData.monthlyData.length > 0) {
+                    demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
+                    productionData = yearData.monthlyData.map(m => m.production || 0);
+                    batteryData = yearData.monthlyData.map(m => m.batteryLevel || 0);
+                    combinedCapacityData = yearData.monthlyData.map((m, i) => {
+                        return (m.production || 0) + (m.batteryLevel || 0);
+                    });
+                } else {
+                    // Generate estimated data based on yearly average
+                    demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
+                    productionData = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
+                    batteryData = months.map((_, i) => Math.round(Math.random() * 200));
+                    combinedCapacityData = productionData.map((prod, i) => prod + batteryData[i]);
+                }
+                
+                // Destroy old chart if exists
+                if (this.summaryAnalysisChart) {
+                    this.summaryAnalysisChart.destroy();
+                }
+                
+                this.summaryAnalysisChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Demand (MWh)',
+                                data: demandData,
+                                borderColor: '#ff9d00',
+                                backgroundColor: 'rgba(255, 157, 0, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#ff9d00',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 1,
+                                borderDash: []
+                            },
+                            {
+                                label: 'Production + Storage (MWh)',
+                                data: combinedCapacityData,
+                                borderColor: '#00ff9d',
+                                backgroundColor: 'rgba(0, 255, 157, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#00ff9d',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 1,
+                                borderDash: []
+                            },
+                            {
+                                label: 'Production Only (MWh)',
+                                data: productionData,
+                                borderColor: '#00f3ff',
+                                backgroundColor: 'rgba(0, 243, 255, 0.08)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#00f3ff',
+                                borderDash: [5, 5]
+                            },
+                            {
+                                label: 'Battery Storage (MWh)',
+                                data: batteryData,
+                                borderColor: '#a855f7',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#a855f7',
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#cbd5e1',
+                                    font: { size: 12, weight: 'bold' },
+                                    padding: 15,
+                                    usePointStyle: true
+                                },
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: 'rgba(0, 243, 255, 0.5)',
+                                borderWidth: 1,
+                                padding: 12,
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            }
+                        }
+                    }
+                });
             },
 
             backToStart() {
