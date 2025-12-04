@@ -1,8 +1,8 @@
-import 'dotenv/config';
 import express from 'express';
 import { OpenAI } from "openai";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,6 +11,24 @@ const PORT = 3000;
 
 app.use(express.json());
 app.use(express.static(__dirname));
+
+if (!process.env.HF_API_KEY) {
+	const envPath = path.join(__dirname, '.env');
+	if (fs.existsSync(envPath)) {
+		const content = fs.readFileSync(envPath, 'utf-8');
+		content.split(/\r?\n/).forEach(line => {
+			const trimmed = line.trim();
+			if (!trimmed || trimmed.startsWith('#')) return;
+			const eqIdx = trimmed.indexOf('=');
+			if (eqIdx === -1) return;
+			const key = trimmed.slice(0, eqIdx).trim();
+			const value = trimmed.slice(eqIdx + 1).trim();
+			if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+				process.env[key] = value;
+			}
+		});
+	}
+}
 
 const HF_API_KEY = process.env.HF_API_KEY;
 if (!HF_API_KEY) {
