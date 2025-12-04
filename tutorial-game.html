@@ -86,10 +86,29 @@
         .game-element.highlighted {
             z-index: 1000;
             box-shadow: 0 0 30px rgba(255, 255, 0, 0.8),
+                        0 0 60px rgba(255, 255, 0, 0.6),
+                        0 0 90px rgba(255, 255, 0, 0.4),
                         inset 0 0 20px rgba(255, 255, 0, 0.3);
             border-color: #ffff00;
             color: #ffff00;
             position: relative;
+            animation: pulseGlow 1.5s ease-in-out infinite;
+            transform: scale(1.05);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(255, 255, 0, 0.8),
+                            0 0 60px rgba(255, 255, 0, 0.6),
+                            0 0 90px rgba(255, 255, 0, 0.4),
+                            inset 0 0 20px rgba(255, 255, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 255, 0, 1),
+                            0 0 80px rgba(255, 255, 0, 0.8),
+                            0 0 120px rgba(255, 255, 0, 0.6),
+                            inset 0 0 30px rgba(255, 255, 0, 0.4);
+            }
         }
 
         /* Tutorial Overlay */
@@ -124,9 +143,11 @@
             position: absolute;
             border-radius: 8px;
             z-index: 2;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8),
+                        inset 0 0 25px rgba(255, 255, 0, 0.4);
             pointer-events: none;
             transition: all 0.4s ease;
+            border: 3px solid rgba(255, 255, 0, 0.6);
         }
 
         /* Tutorial Instruction Box */

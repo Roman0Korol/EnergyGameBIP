@@ -1102,6 +1102,15 @@
                         <canvas id="analysis-chart"></canvas>
                     </div>
                 </div>
+                
+                <!-- Grid Gap/Deficit Chart -->
+                <div class="bg-slate-900/50 border border-slate-700 rounded p-4">
+                    <h4 class="text-sm font-bold text-neon-cyan mb-3">GRID HEALTH: Deficit Analysis (Higher = Worse)</h4>
+                    <p class="text-xs text-gray-500 mb-3">Shows the gap between demand and available production. Red areas indicate energy shortages.</p>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="gap-analysis-chart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1261,6 +1270,14 @@
                             <h4 class="text-xs font-bold text-neon-cyan mb-2">ENERGY ANALYSIS</h4>
                             <div style="position: relative; height: 250px;">
                                 <canvas id="summary-analysis-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Grid Gap/Deficit Chart -->
+                        <div class="bg-slate-900/50 border border-slate-700 rounded p-3 mt-4">
+                            <h4 class="text-xs font-bold text-neon-cyan mb-2">GRID HEALTH: Deficit (Higher = Worse)</h4>
+                            <div style="position: relative; height: 200px;">
+                                <canvas id="summary-gap-analysis-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -1725,6 +1742,7 @@
                 population: 3000,
                 baselineDemandKWh: 7500, 
                 budget: 10000,
+                baseBudget: 10000,
                 desc: "Moderate climate. Balanced renewable options."
             },
             desert: {
@@ -1735,6 +1753,7 @@
                 population: 2800,
                 baselineDemandKWh: 9000, 
                 budget: 12000,
+                baseBudget: 12000,
                 desc: "High solar potential. Water scarcity limits hydro."
             },
             fjord: {
@@ -1745,6 +1764,7 @@
                 population: 3200,
                 baselineDemandKWh: 7000, 
                 budget: 15000,
+                baseBudget: 15000,
                 desc: "Low solar. Excellent hydro potential due to terrain."
             },
             plains: {
@@ -1755,6 +1775,7 @@
                 population: 4100,
                 baselineDemandKWh: 6500, 
                 budget: 8500,
+                baseBudget: 8500,
                 desc: "Strong, consistent winds. Flat terrain."
             }
         };
@@ -1896,6 +1917,8 @@
             farmerAvatar: null,
             analysisChart: null,
             summaryAnalysisChart: null,
+            gapAnalysisChart: null,
+            summaryGapAnalysisChart: null,
             currentFlightTab: 'scores',
 
             init() {
@@ -2101,6 +2124,7 @@
                 
                 // Draw chart
                 this.drawAnalysisChart(yearData);
+                this.drawGapAnalysisChart(yearData);
             },
             
             drawAnalysisChart(yearData) {
@@ -2259,6 +2283,102 @@
                                     color: '#94a3b8', 
                                     font: { size: 11 }
                                 }
+                            }
+                        }
+                    }
+                });
+            },
+            
+            drawGapAnalysisChart(yearData) {
+                const ctx = document.getElementById('gap-analysis-chart');
+                if (!ctx) return;
+                
+                const months = MONTHS;
+                let demandData = [];
+                let gapData = []; // Negative = surplus, Positive = deficit
+                
+                if (yearData.monthlyData && yearData.monthlyData.length > 0) {
+                    demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
+                    gapData = yearData.monthlyData.map(m => {
+                        const combined = (m.production || 0) + (m.batteryLevel || 0);
+                        const demand = m.demand || yearData.demand;
+                        return demand - combined; // Positive = deficit, Negative = surplus
+                    });
+                } else {
+                    demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
+                    const production = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
+                    const battery = months.map((_, i) => Math.round(Math.random() * 200));
+                    gapData = demandData.map((demand, i) => demand - (production[i] + battery[i]));
+                }
+                
+                if (this.gapAnalysisChart) {
+                    this.gapAnalysisChart.destroy();
+                }
+                
+                this.gapAnalysisChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Grid Balance (MWh)',
+                                data: gapData,
+                                backgroundColor: gapData.map(val => val > 0 ? '#ff3333' : '#00ff9d'),
+                                borderColor: gapData.map(val => val > 0 ? '#ff1111' : '#00dd88'),
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'x',
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#cbd5e1',
+                                    font: { size: 12, weight: 'bold' },
+                                    padding: 15
+                                },
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: 'rgba(255, 100, 100, 0.5)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        const val = context.parsed.y;
+                                        if (val > 0) {
+                                            return 'Deficit: Energy shortage';
+                                        } else if (val < 0) {
+                                            return 'Surplus: Extra energy';
+                                        }
+                                        return 'Grid balanced';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                title: {
+                                    display: true,
+                                    text: 'Deficit/Surplus (MWh)',
+                                    color: '#cbd5e1'
+                                }
+                            },
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
                             }
                         }
                     }
@@ -2759,7 +2879,6 @@
             },
 
             async getAdvisorTip() {
-                
                 const advisorPanel = document.getElementById('advisor-panel');
                 advisorPanel.innerHTML = `
                     <div class="advisor-row">
@@ -4201,17 +4320,23 @@
                 this.lastYearScore = totalScore;
 
                 // Calculate stats for modal
-                const newBudget = Math.max(2000, Math.floor(totalScore));
-                this.lastYearBudget = newBudget;
+                const calculatedBudget = Math.max(2000, Math.floor(totalScore));
+                const baseBudget = REGIONS[this.currentRegion].baseBudget || REGIONS[this.currentRegion].budget;
+                let awardedBudget = calculatedBudget;
                 const blackouts = 12 - this.simResults.monthsPowered;
 
                 // Play end-game sound (use letter grade, not just blackouts)
                 const failingGrades = ['C-', 'D', 'E', 'F'];
                 if (failingGrades.includes(letterGrade)) {
                     this.playSound('fail');
+                    awardedBudget = baseBudget;
                 } else {
                     this.playSound('success');
                 }
+
+                REGIONS[this.currentRegion].budget = awardedBudget; // Persist to region
+                CONFIG.budget = awardedBudget; // Set for next reset
+                this.lastYearBudget = awardedBudget; // Store for next year start
 
 
                 this.animateBar('bar-autonomy', Math.min(autoPct * 100, 100), 'score-autonomy', Math.floor(autoPct*100) + '%');
@@ -4229,7 +4354,7 @@
 
                 // Populate Modal
                 document.getElementById('summary-score').innerText = letterGrade;
-                document.getElementById('summary-budget').innerText = `${newBudget.toLocaleString()}cr`;
+                document.getElementById('summary-budget').innerText = `${awardedBudget.toLocaleString()}cr`;
                 
                 // Breakdown Stats
                 document.getElementById('summary-autonomy').innerText = `${Math.floor(s1 * 10)}/100`;
@@ -4241,11 +4366,6 @@
                 document.getElementById('summary-blackouts').innerText = blackouts;
                 document.getElementById('summary-exports').innerText = `${Math.floor(this.simResults.exportEarnings)} cr`;
 
-                // --- Restart Budget Logic ---
-                REGIONS[this.currentRegion].budget = newBudget; // Persist to region
-                CONFIG.budget = newBudget; // Set for next reset
-
-                this.lastYearBudget = newBudget; // Store for next year start
                                 
                 // Show Modal
                 const modal = document.getElementById('summary-modal');
@@ -4264,8 +4384,11 @@
                 else if (autoPct < 1) txt += "Demand met via batteries, but generation low. ";
                 else txt += "Grid stable. Good work, Architect.";
                 
+                const budgetMsg = failingGrades.includes(letterGrade) 
+                    ? `BUDGET RESET: ${awardedBudget.toLocaleString()} Credits restored for retry.`
+                    : `BUDGET UPDATED: ${awardedBudget.toLocaleString()} Credits awarded based on score.`;
                 document.getElementById('analysis-text').innerHTML = 
-                    `${txt} <br><span class="text-neon-green font-bold">BUDGET UPDATED: ${newBudget.toLocaleString()} Credits awarded based on score.</span>`;
+                    `${txt} <br><span class="text-neon-green font-bold">${budgetMsg}</span>`;
                 
                 document.getElementById('ui-param-demand').className = "text-blue-400 font-mono";
             },
@@ -4381,6 +4504,7 @@
                 
                 // Draw chart
                 this.drawSummaryAnalysisChart(yearData);
+                this.drawSummaryGapAnalysisChart(yearData);
             },
             
             drawSummaryAnalysisChart(yearData) {
@@ -4506,6 +4630,87 @@
                             },
                             x: {
                                 ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            }
+                        }
+                    }
+                });
+            },
+            
+            drawSummaryGapAnalysisChart(yearData) {
+                const ctx = document.getElementById('summary-gap-analysis-chart');
+                if (!ctx) return;
+                
+                const months = MONTHS;
+                let demandData = [];
+                let gapData = [];
+                
+                if (yearData.monthlyData && yearData.monthlyData.length > 0) {
+                    demandData = yearData.monthlyData.map(m => m.demand || yearData.demand);
+                    gapData = yearData.monthlyData.map(m => {
+                        const combined = (m.production || 0) + (m.batteryLevel || 0);
+                        const demand = m.demand || yearData.demand;
+                        return Math.max(0, demand - combined);
+                    });
+                } else {
+                    demandData = months.map((_, i) => Math.round(yearData.demand * (0.9 + Math.random() * 0.2)));
+                    const production = months.map((_, i) => Math.round(yearData.avgProduction * (0.8 + Math.random() * 0.4)));
+                    const battery = months.map((_, i) => Math.round(Math.random() * 200));
+                    gapData = demandData.map((demand, i) => Math.max(0, demand - (production[i] + battery[i])));
+                }
+                
+                if (this.summaryGapAnalysisChart) {
+                    this.summaryGapAnalysisChart.destroy();
+                }
+                
+                this.summaryGapAnalysisChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Energy Deficit (MWh)',
+                                data: gapData,
+                                backgroundColor: gapData.map(val => val > yearData.demand * 0.3 ? '#ff3333' : '#ff9d00'),
+                                borderColor: '#ff1111',
+                                borderWidth: 1,
+                                borderRadius: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'x',
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#cbd5e1',
+                                    font: { size: 10, weight: 'bold' },
+                                    padding: 10
+                                },
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: 'rgba(255, 100, 100, 0.5)',
+                                borderWidth: 1,
+                                padding: 10,
+                                titleFont: { size: 11, weight: 'bold' },
+                                bodyFont: { size: 10 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#94a3b8', font: { size: 9 } },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a3b8', font: { size: 9 } },
                                 grid: { color: 'rgba(255,255,255,0.05)' }
                             }
                         }
